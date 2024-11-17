@@ -4,11 +4,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <!-- including HTMX via CDN -->
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
   </head>
   <body>
     <div style="text-align: center">
       <h1>Wifi QRcode generator</h1>
       <hr style="margin: 1.5em" />
+
+      <form
+        hx-post="/qrcode"
+        hx-target="#qrcode"
+        hx-trigger="input delay:500ms, change from:input[type='radio']"
+      >
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <!-- values referenced from https://github.com/zxing/zxing/wiki/Barcode-Contents#wi-fi-network-config-android-ios-11 -->
+          <div>
+            <label for="ssid">SSID:</label>
+            <input type="text" id="ssid" name="ssid" required />
+          </div>
+          <div>
+            <label for="password">Password:</label>
+            <input type="text" id="password" name="password" />
+          </div>
+          <div>
+            <label>Encryption:</label>
+            <input type="radio" name="encryption" value="nopass" required />open
+            <input type="radio" name="encryption" value="WEP" />WEP
+            <input type="radio" name="encryption" value="WPA" />WPAx
+            <!-- <input
+              type="radio"
+              name="encryption"
+              value="WPA2-EAP"
+              required
+            />WPA2-EAP -->
+          </div>
+        </div>
+      </form>
+
+      <div style="margin: 2em" id="qrcode"></div>
     </div>
   </body>
 </html>
