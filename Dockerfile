@@ -5,4 +5,4 @@ WORKDIR /home/local/src/
 
 RUN apt-get update && apt-get upgrade -y
 
-# COPY */go.mod */go.sum ./
+COPY */go.mod */go.sum ./
