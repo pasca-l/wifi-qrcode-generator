@@ -27,11 +27,15 @@ func qrcodeHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	code, err := qrcode.GenerateQRCode(wifiSpec.Encode())
+	qrCodeSpec, err := qrcode.NewQRCodeSpec(wifiSpec.Encode())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	qrCode, err := qrCodeSpec.GenerateQRCode()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Header().Set("Content-Type", "image/svg+xml")
-	qrcode.DrawQRCode(w, code)
+	qrcode.DrawQRCode(w, qrCode)
 }
