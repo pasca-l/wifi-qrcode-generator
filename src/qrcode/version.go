@@ -4,6 +4,7 @@ import "fmt"
 
 type Version int
 
+// maximum number of bits of data that could fit
 var versionCapacity = map[Version]map[ErrorCorrectionLevel]int{
 	1:  {L: 152, M: 128, Q: 104, H: 72},
 	2:  {L: 272, M: 224, Q: 176, H: 128},
@@ -47,6 +48,7 @@ var versionCapacity = map[Version]map[ErrorCorrectionLevel]int{
 	40: {L: 23648, M: 18672, Q: 13328, H: 10208},
 }
 
+// number of bits to represent character count
 var characterCountIndicator = map[Version]map[EncodeMode]int{
 	1:  {BinaryMode: 8, NumericMode: 10},
 	2:  {BinaryMode: 8, NumericMode: 10},
@@ -88,6 +90,24 @@ var characterCountIndicator = map[Version]map[EncodeMode]int{
 	38: {BinaryMode: 16, NumericMode: 14},
 	39: {BinaryMode: 16, NumericMode: 14},
 	40: {BinaryMode: 16, NumericMode: 14},
+}
+
+func getVersionCapacity(ver Version, ecl ErrorCorrectionLevel) (int, error) {
+	if cap, exists := versionCapacity[ver][ecl]; exists {
+		return cap, nil
+	}
+	return 0, fmt.Errorf(
+		"capacity for version: %v and ecl: %v, does not exist", ver, ecl,
+	)
+}
+
+func getCharacterCountIndicator(ver Version, mode EncodeMode) (int, error) {
+	if ind, exists := characterCountIndicator[ver][mode]; exists {
+		return ind, nil
+	}
+	return 0, fmt.Errorf(
+		"indicator for version: %v and mode: %v, does not exist", ver, mode,
+	)
 }
 
 func getVersion(ecl ErrorCorrectionLevel, src string) (Version, error) {

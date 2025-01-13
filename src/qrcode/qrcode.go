@@ -1,5 +1,9 @@
 package qrcode
 
+import (
+	"github.com/pasca-l/wifi-qrcode-generator/utils"
+)
+
 type QRCode struct {
 	pattern [][]bool
 }
@@ -35,6 +39,47 @@ func NewQRCodeSpec(src string) (QRCodeSpec, error) {
 		mode:    mode,
 		version: ver,
 	}, nil
+}
+
+func (s QRCodeSpec) Encode() (utils.Bits, error) {
+	codeword := utils.Bits{}
+
+	indBits, err := getIndicatorBits(s.mode)
+	if err != nil {
+		return utils.Bits{}, err
+	}
+	codeword = append(codeword, indBits...)
+
+	countIndicator, err := getCharacterCountIndicator(s.version, s.mode)
+	if err != nil {
+		return utils.Bits{}, err
+	}
+	srcCountBits, err := getSrcCountBits(s.src, countIndicator)
+	if err != nil {
+		return utils.Bits{}, err
+	}
+	codeword = append(codeword, srcCountBits...)
+
+	srcBits, err := convertSrcToBits(s.mode, s.src)
+	if err != nil {
+		return utils.Bits{}, err
+	}
+	codeword = append(codeword, srcBits...)
+
+	endBits, err := getTerminatorBits()
+	if err != nil {
+		return utils.Bits{}, err
+	}
+	codeword = append(codeword, endBits...)
+
+	capacity, err := getVersionCapacity(s.version, s.ecl)
+	if err != nil {
+		return utils.Bits{}, err
+	}
+	codeword = codeword.AppendBitPadding()
+	codeword = codeword.AppendBytePadding(capacity)
+
+	return codeword, nil
 }
 
 func (s QRCodeSpec) GenerateQRCode() (QRCode, error) {
