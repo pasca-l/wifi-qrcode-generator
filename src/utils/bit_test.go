@@ -114,7 +114,7 @@ func TestByteToBits(t *testing.T) {
 	}
 }
 
-func TestAppendBytePadding(t *testing.T) {
+func TestBitsAppendBytePadding(t *testing.T) {
 	testcases := []struct {
 		b    Bits
 		args int
@@ -143,7 +143,7 @@ func TestAppendBytePadding(t *testing.T) {
 	}
 }
 
-func TestAppendBitPadding(t *testing.T) {
+func TestBitsAppendBitPadding(t *testing.T) {
 	testcases := []struct {
 		b    Bits
 		want Bits
@@ -166,6 +166,34 @@ func TestAppendBitPadding(t *testing.T) {
 		t.Run("testing Bits.AppendBitPadding()", func(t *testing.T) {
 			if got := tt.b.AppendBitPadding(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Bits.AppendBitPadding() = %v; expected %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBitsToBitString(t *testing.T) {
+	testcases := []struct {
+		b    Bits
+		want string
+	}{
+		{
+			b:    Bits{},
+			want: "",
+		},
+		{
+			b:    Bits{true},
+			want: "00000001",
+		},
+		{
+			b:    Bits{true, true, true, false, true, false, false, true, true},
+			want: "00000001 11010011",
+		},
+	}
+
+	for _, tt := range testcases {
+		t.Run("testing Bits.ToBitString()", func(t *testing.T) {
+			if got := tt.b.ToBitString(); got != tt.want {
+				t.Errorf("Bits.ToBitString() = %v; expected %v", got, tt.want)
 			}
 		})
 	}

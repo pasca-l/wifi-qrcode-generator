@@ -44,7 +44,7 @@ func NewBytes(src interface{}) (Bytes, error) {
 func (bs Bytes) ToBits(digits int) Bits {
 	bits := make(Bits, 0)
 	for _, b := range bs {
-		bits = bits.AppendBits(b.ToBits(digits))
+		bits = append(bits, b.ToBits(digits)...)
 	}
 	return bits
 }
@@ -59,15 +59,11 @@ func (b Byte) ToBits(digits int) Bits {
 	return bits
 }
 
-func (b Bits) AppendBits(bits Bits) Bits {
-	return append(b, bits...)
-}
-
 // pads 0 until the last byte is filled
 func (b Bits) AppendBitPadding() Bits {
 	paddingBitLength := (8 - (len(b) % 8)) % 8
 	padding := make(Bits, paddingBitLength)
-	return b.AppendBits(padding)
+	return append(b, padding...)
 }
 
 // pads with alternating 0xEC and 0x11 until capacity
@@ -78,8 +74,30 @@ func (b Bits) AppendBytePadding(capacity int) Bits {
 	paddingByteLength := (capacity - len(b)) / 8
 	for i := range paddingByteLength {
 		padding, _ := NewBytes(padBytes[i%2])
-		b = b.AppendBits(padding.ToBits(8))
+		b = append(b, padding.ToBits(8)...)
 	}
 
 	return b
+}
+
+func (b Bits) ToBitString() string {
+	paddingLength := (8 - (len(b) % 8)) % 8
+	padding := make(Bits, paddingLength)
+
+	// add padding from the left
+	bits := append(padding, b...)
+
+	var bitString string
+	for i, b := range bits {
+		if b {
+			bitString += "1"
+		} else {
+			bitString += "0"
+		}
+		if (i+1)%8 == 0 && i+1 != len(bits) {
+			bitString += " "
+		}
+	}
+
+	return bitString
 }
