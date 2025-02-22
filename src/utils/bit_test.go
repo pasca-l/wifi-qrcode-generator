@@ -114,6 +114,43 @@ func TestByteToBits(t *testing.T) {
 	}
 }
 
+func TestBitsToBytes(t *testing.T) {
+	testcases := []struct {
+		b       Bits
+		want    Bytes
+		wantErr error
+	}{
+		{
+			b:       Bits{true, true, true, false, true, true, false, false},
+			want:    Bytes{236},
+			wantErr: nil,
+		},
+		{
+			b:       Bits{true, true, true, false, true, true, false, false, false, false, false, true, false, false, false, true},
+			want:    Bytes{236, 17},
+			wantErr: nil,
+		},
+		{
+			b:       Bits{true},
+			want:    Bytes{},
+			wantErr: errors.New("bits must have length with multiple of 8: given length 1"),
+		},
+	}
+
+	for _, tt := range testcases {
+		t.Run("testing Bits.ToBytes()", func(t *testing.T) {
+			got, err := tt.b.ToBytes()
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Bits.ToBytes() = %v; expected %v", got, tt.want)
+			}
+			// check error message
+			if err != nil && err.Error() != tt.wantErr.Error() {
+				t.Errorf("Bits.ToBytes() with error '%v'; expected '%v'", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestBitsAppendBytePadding(t *testing.T) {
 	testcases := []struct {
 		b    Bits

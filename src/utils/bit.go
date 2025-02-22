@@ -80,6 +80,26 @@ func (b Bits) AppendBytePadding(capacity int) Bits {
 	return b
 }
 
+func (b Bits) ToBytes() (Bytes, error) {
+	if len(b)%8 != 0 {
+		return Bytes{}, fmt.Errorf("bits must have length with multiple of 8: given length %d", len(b))
+	}
+
+	Bs := make(Bytes, 0)
+	for i := 0; i < len(b); i += 8 {
+		var B Byte
+		for j := range 8 {
+			if b[i+j] {
+				// set the bit to 1 if true
+				B |= (1 << uint(7-j))
+			}
+		}
+		Bs = append(Bs, B)
+	}
+
+	return Bs, nil
+}
+
 func (b Bits) ToBitString() string {
 	paddingLength := (8 - (len(b) % 8)) % 8
 	padding := make(Bits, paddingLength)
