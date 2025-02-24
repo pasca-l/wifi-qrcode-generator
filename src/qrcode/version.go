@@ -5,7 +5,8 @@ import "fmt"
 type Version int
 
 // maximum number of bits of data that could fit
-var versionCapacity = map[Version]map[ErrorCorrectionLevel]int{
+// does not take mode indicator overhead into account
+var dataCapacity = map[Version]map[ErrorCorrectionLevel]int{
 	1:  {L: 152, M: 128, Q: 104, H: 72},
 	2:  {L: 272, M: 224, Q: 176, H: 128},
 	3:  {L: 440, M: 352, Q: 272, H: 208},
@@ -49,7 +50,7 @@ var versionCapacity = map[Version]map[ErrorCorrectionLevel]int{
 }
 
 // number of bits to represent character count
-var characterCountIndicator = map[Version]map[EncodeMode]int{
+var lengthField = map[Version]map[EncodeMode]int{
 	1:  {BinaryMode: 8, NumericMode: 10},
 	2:  {BinaryMode: 8, NumericMode: 10},
 	3:  {BinaryMode: 8, NumericMode: 10},
@@ -93,7 +94,7 @@ var characterCountIndicator = map[Version]map[EncodeMode]int{
 }
 
 func getVersionCapacity(ver Version, ecl ErrorCorrectionLevel) (int, error) {
-	if cap, exists := versionCapacity[ver][ecl]; exists {
+	if cap, exists := dataCapacity[ver][ecl]; exists {
 		return cap, nil
 	}
 	return 0, fmt.Errorf(
@@ -101,12 +102,12 @@ func getVersionCapacity(ver Version, ecl ErrorCorrectionLevel) (int, error) {
 	)
 }
 
-func getCharacterCountIndicator(ver Version, mode EncodeMode) (int, error) {
-	if ind, exists := characterCountIndicator[ver][mode]; exists {
-		return ind, nil
+func getLengthField(ver Version, mode EncodeMode) (int, error) {
+	if len, exists := lengthField[ver][mode]; exists {
+		return len, nil
 	}
 	return 0, fmt.Errorf(
-		"indicator for version: %v and mode: %v, does not exist", ver, mode,
+		"length field for version: %v and mode: %v, does not exist", ver, mode,
 	)
 }
 
@@ -153,8 +154,8 @@ func findMinimumVersionToFit(ecl ErrorCorrectionLevel, mode EncodeMode, srcLengt
 	var requiredBits int
 	for i := 1; i <= 40; i++ {
 		v := Version(i)
-		requiredBits = modeIndicator + characterCountIndicator[v][mode] + dataBits
-		if versionCapacity[v][ecl] >= requiredBits {
+		requiredBits = modeIndicator + lengthField[v][mode] + dataBits
+		if dataCapacity[v][ecl] >= requiredBits {
 			return v, nil
 		}
 	}

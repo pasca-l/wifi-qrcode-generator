@@ -1,8 +1,6 @@
 package qrcode
 
-import (
-	"github.com/pasca-l/wifi-qrcode-generator/utils"
-)
+import "github.com/pasca-l/wifi-qrcode-generator/utils"
 
 type QRCode struct {
 	pattern [][]bool
@@ -41,45 +39,44 @@ func NewQRCodeSpec(src string) (QRCodeSpec, error) {
 	}, nil
 }
 
-func (s QRCodeSpec) Encode() (utils.Bits, error) {
-	codeword := utils.Bits{}
+func (s QRCodeSpec) EncodeSrc() (utils.Bits, error) {
+	msg := utils.Bits{}
 
 	indBits, err := getIndicatorBits(s.mode)
 	if err != nil {
 		return utils.Bits{}, err
 	}
-	codeword = append(codeword, indBits...)
-
-	countIndicator, err := getCharacterCountIndicator(s.version, s.mode)
-	if err != nil {
-		return utils.Bits{}, err
-	}
-	srcCountBits, err := getSrcCountBits(s.src, countIndicator)
-	if err != nil {
-		return utils.Bits{}, err
-	}
-	codeword = append(codeword, srcCountBits...)
+	msg = append(msg, indBits...)
 
 	srcBits, err := convertSrcToBits(s.mode, s.src)
 	if err != nil {
 		return utils.Bits{}, err
 	}
-	codeword = append(codeword, srcBits...)
+	countIndicator, err := getLengthField(s.version, s.mode)
+	if err != nil {
+		return utils.Bits{}, err
+	}
+	srcCountBits, err := getSrcCountBits(len(srcBits), countIndicator)
+	if err != nil {
+		return utils.Bits{}, err
+	}
+	msg = append(msg, srcCountBits...)
+	msg = append(msg, srcBits...)
 
 	endBits, err := getTerminatorBits()
 	if err != nil {
 		return utils.Bits{}, err
 	}
-	codeword = append(codeword, endBits...)
+	msg = append(msg, endBits...)
 
 	capacity, err := getVersionCapacity(s.version, s.ecl)
 	if err != nil {
 		return utils.Bits{}, err
 	}
-	codeword = codeword.AppendBitPadding()
-	codeword = codeword.AppendBytePadding(capacity)
+	msg = msg.AppendBitPadding()
+	msg = msg.AppendBytePadding(capacity)
 
-	return codeword, nil
+	return msg, nil
 }
 
 func (s QRCodeSpec) GenerateQRCode() (QRCode, error) {

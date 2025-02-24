@@ -74,15 +74,19 @@ func convertSrcToBits(mode EncodeMode, src string) (utils.Bits, error) {
 		if err != nil {
 			return utils.Bits{}, err
 		}
-		return bytes.ToBits(8), nil
+
+		bits := make(utils.Bits, 0)
+		for _, b := range bytes {
+			bits = append(bits, b.ToBits(8)...)
+		}
+		return bits, nil
 
 	default:
 		return utils.Bits{}, fmt.Errorf("unexpected mode: %s", mode)
 	}
 }
 
-func getSrcCountBits(src string, ind int) (utils.Bits, error) {
-	srcLength := len([]byte(src))
+func getSrcCountBits(srcLength int, ind int) (utils.Bits, error) {
 	bytes, err := utils.NewBytes(srcLength)
 	if err != nil {
 		return utils.Bits{}, err
