@@ -6,6 +6,7 @@ type Version int
 
 // maximum number of bits of data that could fit
 // does not take mode indicator overhead into account
+// referenced: https://en.wikiversity.org/wiki/Reed%E2%80%93Solomon_codes_for_coders/Additional_information#Symbol_size
 var dataCapacity = map[Version]map[ErrorCorrectionLevel]int{
 	1:  {L: 152, M: 128, Q: 104, H: 72},
 	2:  {L: 272, M: 224, Q: 176, H: 128},
@@ -50,6 +51,7 @@ var dataCapacity = map[Version]map[ErrorCorrectionLevel]int{
 }
 
 // number of bits to represent character count
+// referenced: https://en.wikiversity.org/wiki/Reed%E2%80%93Solomon_codes_for_coders/Additional_information#Encoding_modes
 var lengthField = map[Version]map[EncodeMode]int{
 	1:  {BinaryMode: 8, NumericMode: 10},
 	2:  {BinaryMode: 8, NumericMode: 10},

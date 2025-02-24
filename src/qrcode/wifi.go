@@ -48,7 +48,7 @@ func toEncryption(param string) (Encryption, error) {
 }
 
 func (s WifiSpec) Encode() string {
-	// referenced https://github.com/zxing/zxing/wiki/Barcode-Contents#wi-fi-network-config-android-ios-11
+	// referenced: https://github.com/zxing/zxing/wiki/Barcode-Contents#wi-fi-network-config-android-ios-11
 	return fmt.Sprintf(
 		"WIFI:T:%s;S:\"%s\";P:\"%s\";;",
 		s.encryption, s.ssid, s.password,

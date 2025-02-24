@@ -23,7 +23,7 @@ func TestReedSolomonEncode(t *testing.T) {
 		{
 			// encoded "Hello World!" with mode: binary, version: 1
 			msg: utils.Bytes{70, 4, 134, 86, 198, 198, 242, 5, 118, 247, 38, 198, 66, 16, 236, 17, 236, 17, 236},
-			//  nsym determined by ecl: L for the spec above
+			// nsym determined by ecl: L for the spec above
 			nsym:    7,
 			want:    utils.Bytes{70, 4, 134, 86, 198, 198, 242, 5, 118, 247, 38, 198, 66, 16, 236, 17, 236, 17, 236, 238, 82, 154, 31, 241, 184, 8},
 			wantErr: nil,

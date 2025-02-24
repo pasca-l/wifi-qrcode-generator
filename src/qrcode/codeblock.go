@@ -53,6 +53,7 @@ func genBlks(spec []BlockSpec) Blocks {
 
 // block structure used to encode with reed-solomon,
 // where block values are represented in bytes
+// referenced: https://en.wikiversity.org/wiki/Reed%E2%80%93Solomon_codes_for_coders/Additional_information#RS_block_size
 var blockStructure = map[Version]map[ErrorCorrectionLevel]Blocks{
 	1: {
 		L: genBlks([]BlockSpec{genBlkSpec(1, 26, 19)}),
