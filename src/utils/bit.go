@@ -41,12 +41,24 @@ func NewBytes(src interface{}) (Bytes, error) {
 	return bs, nil
 }
 
-func (bs Bytes) ToBits(digits int) Bits {
-	bits := make(Bits, 0)
+func (bs Bytes) ToNativeBytes() []byte {
+	bytes := make([]byte, 0, len(bs))
 	for _, b := range bs {
-		bits = append(bits, b.ToBits(digits)...)
+		bytes = append(bytes, byte(b))
 	}
-	return bits
+	return bytes
+}
+
+func (bs Bytes) ToBits(digits int) Bits {
+	bits := make(Bits, 0, digits)
+	for _, b := range bs {
+		bits = append(bits, b.ToBits(8)...)
+	}
+	return bits[len(bits)-digits:]
+}
+
+func (b Byte) ToNativeByte() byte {
+	return byte(b)
 }
 
 func (b Byte) ToBits(digits int) Bits {

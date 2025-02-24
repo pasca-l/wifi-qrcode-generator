@@ -59,10 +59,10 @@ func TestBytesToBits(t *testing.T) {
 			want: Bits{true},
 		},
 		{
-			// []byte{1, 1} -> {0001, 0001}
-			bs:   Bytes{1, 1},
+			// []byte{1, 3} -> {00000001, 00000011} -> 0011
+			bs:   Bytes{1, 3},
 			args: 4,
-			want: Bits{false, false, false, true, false, false, false, true},
+			want: Bits{false, false, true, true},
 		},
 	}
 
@@ -140,12 +140,11 @@ func TestBitsToBytes(t *testing.T) {
 	for _, tt := range testcases {
 		t.Run("testing Bits.ToBytes()", func(t *testing.T) {
 			got, err := tt.b.ToBytes()
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bits.ToBytes() = %v; expected %v", got, tt.want)
-			}
-			// check error message
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("Bits.ToBytes() with error '%v'; expected '%v'", err, tt.wantErr)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Bits.ToBytes() = %v; expected %v", got, tt.want)
 			}
 		})
 	}
