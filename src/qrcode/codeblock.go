@@ -37,7 +37,7 @@ func genBlkSpec(count int, blockLength int, codewordLength int) BlockSpec {
 
 func (bs BlockSpec) toBlocks() Blocks {
 	var blocks Blocks
-	for _ = range bs.count {
+	for range bs.count {
 		blocks = append(blocks, bs.block)
 	}
 	return blocks

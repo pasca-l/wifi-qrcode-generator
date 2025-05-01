@@ -13,7 +13,7 @@ func TestQRCodeSpecEncodeSrc(t *testing.T) {
 		ecl     ErrorCorrectionLevel
 		mode    EncodeMode
 		version Version
-		want    utils.Bits
+		want    utils.Bytes
 		wantErr error
 	}{
 		{
@@ -21,7 +21,7 @@ func TestQRCodeSpecEncodeSrc(t *testing.T) {
 			ecl:     L,
 			mode:    BinaryMode,
 			version: 1,
-			want:    utils.Bytes{70, 4, 134, 86, 198, 198, 242, 5, 118, 247, 38, 198, 66, 16, 236, 17, 236, 17, 236}.ToBits(19 * 8),
+			want:    utils.Bytes{70, 4, 134, 86, 198, 198, 242, 5, 118, 247, 38, 198, 66, 16, 236, 17, 236, 17, 236},
 			wantErr: nil,
 		},
 	}
@@ -29,12 +29,11 @@ func TestQRCodeSpecEncodeSrc(t *testing.T) {
 	for _, tt := range testcases {
 		t.Run("testing QRCodeSpec.EncodeSrc()", func(t *testing.T) {
 			spec := QRCodeSpec{
-				src:     tt.src,
 				ecl:     tt.ecl,
 				mode:    tt.mode,
 				version: tt.version,
 			}
-			got, err := spec.EncodeSrc()
+			got, err := EncodeSrc(tt.src, spec)
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("QRCodeSpec.EncodeSrc()() error = '%v'; expected '%v'", err, tt.wantErr)
 			}

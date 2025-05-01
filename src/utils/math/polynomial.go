@@ -27,6 +27,7 @@ func (p Polynomial) ToBytes() []byte {
 func GeneratorPoly(gf GaloisField, nsym int) Polynomial {
 	g := Polynomial{1}
 
+	// iterates over the number of error correction symbols
 	for i := range nsym {
 		poly := Polynomial{1, gf.FastPower(2, i)}
 		g = g.Multiply(gf, poly)
