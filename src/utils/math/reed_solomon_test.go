@@ -23,7 +23,7 @@ func TestReedSolomonEncode(t *testing.T) {
 		{
 			// encoded "Hello World!" with QRCodeSpec{mode: binary, version: 1}
 			msg: utils.Bytes{70, 4, 134, 86, 198, 198, 242, 5, 118, 247, 38, 198, 66, 16, 236, 17, 236, 17, 236},
-			// nsym determined by QRCodeSpec{ecl: L, version: 1}, which uses
+			// nsym determined by QRCodeSpec{version: 1, ecl: L}, which uses
 			// Block{blockLength:26, codewordLength:19} -> 26-19 = 7 as nsym
 			nsym:    7,
 			want:    utils.Bytes{70, 4, 134, 86, 198, 198, 242, 5, 118, 247, 38, 198, 66, 16, 236, 17, 236, 17, 236, 238, 82, 154, 31, 241, 184, 8},

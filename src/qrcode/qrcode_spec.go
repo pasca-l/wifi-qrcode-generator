@@ -8,9 +8,9 @@ import (
 )
 
 type QRCodeSpec struct {
-	ecl     ErrorCorrectionLevel
 	mode    EncodeMode
 	version Version
+	ecl     ErrorCorrectionLevel
 }
 
 type ErrorCorrectionLevel string
@@ -31,9 +31,9 @@ func NewQRCodeSpec(src string, ecl ErrorCorrectionLevel) (QRCodeSpec, error) {
 	}
 
 	return QRCodeSpec{
-		ecl:     ecl,
 		mode:    mode,
 		version: ver,
+		ecl:     ecl,
 	}, nil
 }
 
@@ -91,8 +91,11 @@ func ApplyErrorCorrection(msg utils.Bytes, spec QRCodeSpec) (utils.Bytes, error)
 	rs := math.ReedSolomon{}
 	result := make(utils.Bytes, 0)
 	for _, block := range blocks {
-		subMsg := msg[:block.blockLength]
-		msg = msg[block.blockLength:] // update message to its remaining part
+		subMsg := msg
+		if len(msg) > block.blockLength {
+			subMsg = msg[:block.blockLength]
+			msg = msg[block.blockLength:] // update message to its remaining part
+		}
 
 		encoded, err := rs.Encode(subMsg, block.blockLength-block.codewordLength)
 		if err != nil {
