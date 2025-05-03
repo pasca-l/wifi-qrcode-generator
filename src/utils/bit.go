@@ -71,37 +71,45 @@ func (b Byte) ToBits(digits int) Bits {
 	return bits
 }
 
+func (bs Bits) ToNativeBools() []bool {
+	bools := make([]bool, 0, len(bs))
+	for _, bit := range bs {
+		bools = append(bools, bool(bit))
+	}
+	return bools
+}
+
 // pads 0 until the last byte is filled
-func (b Bits) AppendBitPadding() Bits {
-	paddingBitLength := (8 - (len(b) % 8)) % 8
+func (bs Bits) AppendBitPadding() Bits {
+	paddingBitLength := (8 - (len(bs) % 8)) % 8
 	padding := make(Bits, paddingBitLength)
-	return append(b, padding...)
+	return append(bs, padding...)
 }
 
 // pads with alternating 0xEC and 0x11 until capacity
-func (b Bits) AppendBytePadding(capacity int) Bits {
+func (bs Bits) AppendBytePadding(capacity int) Bits {
 	// constant padding bytes
 	padBytes := []byte{0xEC, 0x11}
 
-	paddingByteLength := (capacity - len(b)) / 8
+	paddingByteLength := (capacity - len(bs)) / 8
 	for i := range paddingByteLength {
 		padding, _ := NewBytes(padBytes[i%2])
-		b = append(b, padding.ToBits(8)...)
+		bs = append(bs, padding.ToBits(8)...)
 	}
 
-	return b
+	return bs
 }
 
-func (b Bits) ToBytes() (Bytes, error) {
-	if len(b)%8 != 0 {
-		return Bytes{}, fmt.Errorf("bits must have length with multiple of 8: given length %d", len(b))
+func (bs Bits) ToBytes() (Bytes, error) {
+	if len(bs)%8 != 0 {
+		return Bytes{}, fmt.Errorf("bits must have length with multiple of 8: given length %d", len(bs))
 	}
 
 	Bs := make(Bytes, 0)
-	for i := 0; i < len(b); i += 8 {
+	for i := 0; i < len(bs); i += 8 {
 		var B Byte
 		for j := range 8 {
-			if b[i+j] {
+			if bs[i+j] {
 				// set the bit to 1 if true
 				B |= (1 << uint(7-j))
 			}
@@ -112,12 +120,12 @@ func (b Bits) ToBytes() (Bytes, error) {
 	return Bs, nil
 }
 
-func (b Bits) ToBitString() string {
-	paddingLength := (8 - (len(b) % 8)) % 8
+func (bs Bits) ToBitString() string {
+	paddingLength := (8 - (len(bs) % 8)) % 8
 	padding := make(Bits, paddingLength)
 
 	// add padding from the left
-	bits := append(padding, b...)
+	bits := append(padding, bs...)
 
 	var bitString string
 	for i, b := range bits {
