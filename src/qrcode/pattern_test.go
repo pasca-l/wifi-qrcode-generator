@@ -129,12 +129,12 @@ func TestAddFunctionalPattern(t *testing.T) {
 		t.Run("testing addFunctionalPattern()", func(t *testing.T) {
 			size := calcSizeFromVersion(tt.ver)
 			pat := NewPattern(size)
-			got, err := pat.addFunctionPattern(tt.ver)
+			err := pat.addFunctionPattern(tt.ver)
 			if err != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("addFunctionalPattern() error = '%v'; expected '%v'", err, tt.wantErr)
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("addFunctionalPattern() = %v; expected %v", got, tt.want)
+			if !reflect.DeepEqual(pat, tt.want) {
+				t.Errorf("addFunctionalPattern() = %v; expected %v", pat, tt.want)
 			}
 		})
 	}

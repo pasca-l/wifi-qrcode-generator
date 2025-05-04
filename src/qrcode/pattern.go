@@ -52,26 +52,28 @@ func (p Pattern) FillPattern() Pattern {
 func GeneratePattern(msg utils.Bytes, spec QRCodeSpec) (Pattern, error) {
 	dim := calcSizeFromVersion(spec.version)
 	pat := NewPattern(dim)
+	reserved := NewPattern(dim)
 
-	pat, err := pat.addFunctionPattern(spec.version)
+	err := pat.addFunctionPattern(spec.version)
 	if err != nil {
 		return nil, err
 	}
-	pat, err = pat.addFormatInformation(spec.ecl, Mask(0))
+	err = pat.addFormatInformation(spec.ecl, Mask(0))
 	if err != nil {
 		return nil, err
 	}
-	pat, err = pat.addVersionInformation(spec.version)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = pat.createReservedPatternMask(spec.version)
+	err = pat.addVersionInformation(spec.version)
 	if err != nil {
 		return nil, err
 	}
 
-	return Pattern{}, nil
+	err = reserved.createReservedPatternMask(spec.version)
+	if err != nil {
+		return nil, err
+	}
+	pat.applyData(msg, reserved)
+
+	return pat, nil
 }
 
 func calcSizeFromVersion(ver Version) int {
@@ -169,20 +171,20 @@ func calcAlignmentPatternCoords(ver Version) ([]Coordinate, error) {
 	return coords, nil
 }
 
-func (p Pattern) addFunctionPattern(ver Version) (Pattern, error) {
+func (p Pattern) addFunctionPattern(ver Version) error {
 	// add 7x7 finder patterns to corners
 	finderPattern := createFinderPattern()
 	p, err := p.DrawPattern(finderPattern, Coordinate{0, 0})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	p, err = p.DrawPattern(finderPattern, Coordinate{0, len(p) - 7})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	p, err = p.DrawPattern(finderPattern, Coordinate{len(p) - 7, 0})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// add timing patterns
@@ -195,34 +197,34 @@ func (p Pattern) addFunctionPattern(ver Version) (Pattern, error) {
 	alignmentPattern := createAlignmentPattern()
 	coords, err := calcAlignmentPatternCoords(ver)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, coord := range coords {
 		p, err = p.DrawPattern(alignmentPattern, coord)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return p, nil
+	return nil
 }
 
-func (p Pattern) addFormatInformation(ecl ErrorCorrectionLevel, mask Mask) (Pattern, error) {
-	eclBytes, err := utils.NewBytes(ecl)
+func (p Pattern) addFormatInformation(ecl ErrorCorrectionLevel, mask Mask) error {
+	eclBytes, err := utils.NewBytes(int(ecl))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	eclBits := eclBytes.ToBits(2)
-	maskBytes, err := utils.NewBytes(mask)
+	maskBytes, err := utils.NewBytes(int(mask))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	maskBits := maskBytes.ToBits(3)
 
 	bch := math.BCH{}
 	encoded, err := bch.EncodeFormatInfo(eclBits, maskBits)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// add first copy of format information
@@ -241,29 +243,29 @@ func (p Pattern) addFormatInformation(ecl ErrorCorrectionLevel, mask Mask) (Patt
 		p[len(p)-1-i][8] = bool(encoded[i])
 	}
 	for i := 8; i < 15; i++ {
-		p[8][len(p)-15-i] = bool(encoded[i])
+		p[8][len(p)-15+i] = bool(encoded[i])
 	}
 	p[8][len(p)-8] = true // always set to dark
 
-	return p, nil
+	return nil
 }
 
-func (p Pattern) addVersionInformation(ver Version) (Pattern, error) {
+func (p Pattern) addVersionInformation(ver Version) error {
 	// only add version information for versions >= 7
 	if ver < 7 {
-		return p, nil
+		return nil
 	}
 
 	verBytes, err := utils.NewBytes(int(ver))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	verBits := verBytes.ToBits(6)
 
 	bch := math.BCH{}
 	encoded, err := bch.EncodeVersionInfo(verBits)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// add version information
@@ -274,23 +276,23 @@ func (p Pattern) addVersionInformation(ver Version) (Pattern, error) {
 		p[b][a] = bool(encoded[i])
 	}
 
-	return p, nil
+	return nil
 }
 
-func (p Pattern) createReservedPatternMask(ver Version) (Pattern, error) {
+func (p Pattern) createReservedPatternMask(ver Version) error {
 	// reserved areas for finder patterns with separator
 	finderPattern := NewPattern(8).FillPattern()
 	p, err := p.DrawPattern(finderPattern, Coordinate{0, 0})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	p, err = p.DrawPattern(finderPattern, Coordinate{0, len(p) - 8})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	p, err = p.DrawPattern(finderPattern, Coordinate{len(p) - 8, 0})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// reserved areas for timing patterns
@@ -303,12 +305,12 @@ func (p Pattern) createReservedPatternMask(ver Version) (Pattern, error) {
 	alignmentPattern := NewPattern(5).FillPattern()
 	coords, err := calcAlignmentPatternCoords(ver)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, coord := range coords {
 		p, err = p.DrawPattern(alignmentPattern, coord)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
@@ -326,8 +328,9 @@ func (p Pattern) createReservedPatternMask(ver Version) (Pattern, error) {
 		p[len(p)-1-i][8] = true
 	}
 	for i := 8; i < 15; i++ {
-		p[8][len(p)-15-i] = true
+		p[8][len(p)-15+i] = true
 	}
+	p[8][len(p)-8] = true
 
 	// reserved areas for version information
 	if ver >= 7 {
@@ -339,11 +342,42 @@ func (p Pattern) createReservedPatternMask(ver Version) (Pattern, error) {
 		}
 	}
 
-	return p, nil
+	return nil
 }
 
-func (p Pattern) applyData(msg utils.Bytes, reserved Pattern) Pattern {
-	return Pattern{}
+func (p Pattern) applyData(msg utils.Bytes, reserved Pattern) {
+	size := len(p)
+	bitIdx := 0
+	msgBytes := msg.ToNativeBytes()
+
+	// traverse the grid in a zigzag pattern
+	for col := size - 1; col > 0; col -= 2 {
+		if col <= 6 {
+			col--
+		}
+
+		for row := range size {
+			for offset := range 2 {
+				x := col - offset
+				// set y to traverse downwards, but for even columns upwards
+				y := row
+				if (col+1)%2 == 0 {
+					y = size - 1 - row
+				}
+
+				// skip reserved areas
+				if reserved[y][x] {
+					continue
+				}
+
+				// apply message bits
+				if bitIdx < len(msgBytes)*8 { // ensure message is not out of bounds
+					p[y][x] = (msgBytes[bitIdx>>3]>>(7-(bitIdx&7)))&1 != 0
+					bitIdx++
+				}
+			}
+		}
+	}
 }
 
 func (p Pattern) findBestMask() int {
