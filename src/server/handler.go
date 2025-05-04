@@ -16,7 +16,6 @@ func qrcodeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "POST method required", http.StatusMethodNotAllowed)
 		return
 	}
-
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -27,11 +26,13 @@ func qrcodeHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	qrCodeSpec, err := qrcode.NewQRCodeSpec(wifiSpec.Encode(), qrcode.L)
+	src := wifiSpec.Encode()
+
+	qrCodeSpec, err := qrcode.NewQRCodeSpec(src, qrcode.L)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	qrCode, err := qrCodeSpec.GenerateQRCode(wifiSpec.Encode())
+	qrCode, err := qrcode.NewQRCode(src, qrCodeSpec)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
