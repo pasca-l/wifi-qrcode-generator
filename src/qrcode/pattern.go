@@ -2,6 +2,7 @@ package qrcode
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/pasca-l/wifi-qrcode-generator/utils"
 	"github.com/pasca-l/wifi-qrcode-generator/utils/math"
@@ -14,6 +15,33 @@ type Coordinate struct {
 }
 
 type Mask int
+
+var maskPatterns = map[Mask]func(coord Coordinate) bool{
+	0: func(coord Coordinate) bool {
+		return (coord.X+coord.Y)%2 == 0
+	},
+	1: func(coord Coordinate) bool {
+		return coord.Y%2 == 0
+	},
+	2: func(coord Coordinate) bool {
+		return coord.X%3 == 0
+	},
+	3: func(coord Coordinate) bool {
+		return (coord.X+coord.Y)%3 == 0
+	},
+	4: func(coord Coordinate) bool {
+		return (coord.X/3+coord.Y/2)%2 == 0
+	},
+	5: func(coord Coordinate) bool {
+		return (coord.X*coord.Y)%2+(coord.X*coord.Y)%3 == 0
+	},
+	6: func(coord Coordinate) bool {
+		return ((coord.X*coord.Y)%2+(coord.X*coord.Y)%3)%2 == 0
+	},
+	7: func(coord Coordinate) bool {
+		return ((coord.X+coord.Y)%2+(coord.X*coord.Y)%3)%2 == 0
+	},
+}
 
 func NewPattern(size int) Pattern {
 	pattern := make(Pattern, size)
@@ -66,12 +94,20 @@ func GeneratePattern(msg utils.Bytes, spec QRCodeSpec) (Pattern, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	err = reserved.createReservedPatternMask(spec.version)
 	if err != nil {
 		return nil, err
 	}
-	pat.applyData(msg, reserved)
+	err = pat.applyData(msg, reserved)
+	if err != nil {
+		return nil, err
+	}
+	mask := pat.findBestMask(reserved)
+	pat.applyMask(mask, reserved)
+	err = pat.addFormatInformation(spec.ecl, mask)
+	if err != nil {
+		return nil, err
+	}
 
 	return pat, nil
 }
@@ -345,14 +381,20 @@ func (p Pattern) createReservedPatternMask(ver Version) error {
 	return nil
 }
 
-func (p Pattern) applyData(msg utils.Bytes, reserved Pattern) {
+func (p Pattern) applyData(msg utils.Bytes, reserved Pattern) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("recovered panic: %v", r)
+		}
+	}()
+
 	size := len(p)
 	bitIdx := 0
 	msgBytes := msg.ToNativeBytes()
 
 	// traverse the grid in a zigzag pattern
 	for col := size - 1; col > 0; col -= 2 {
-		if col <= 6 {
+		if col == 6 {
 			col--
 		}
 
@@ -361,7 +403,7 @@ func (p Pattern) applyData(msg utils.Bytes, reserved Pattern) {
 				x := col - offset
 				// set y to traverse downwards, but for even columns upwards
 				y := row
-				if (col+1)%2 == 0 {
+				if (col+1)&0b10 == 0 {
 					y = size - 1 - row
 				}
 
@@ -372,18 +414,123 @@ func (p Pattern) applyData(msg utils.Bytes, reserved Pattern) {
 
 				// apply message bits
 				if bitIdx < len(msgBytes)*8 { // ensure message is not out of bounds
-					p[y][x] = (msgBytes[bitIdx>>3]>>(7-(bitIdx&7)))&1 != 0
+					p[y][x] = (msgBytes[bitIdx>>3]>>(7-(bitIdx&0b0111)))&1 != 0
 					bitIdx++
 				}
 			}
 		}
 	}
+
+	return nil
 }
 
-func (p Pattern) findBestMask() int {
-	return 0
+func (p Pattern) applyMask(mask Mask, reserved Pattern) {
+	size := len(p)
+	for row := range size {
+		for col := range size {
+			if reserved[row][col] {
+				continue
+			}
+			p[row][col] = p[row][col] != maskPatterns[mask](Coordinate{X: col, Y: row})
+		}
+	}
 }
 
-func (p Pattern) applyMask(mask int) Pattern {
-	return Pattern{}
+func (p Pattern) calcPenaltyScore() int {
+	size := len(p)
+	penalty := 0
+
+	// check adjacent modules in rows
+	for row := range size {
+		count := 1
+		for col := 1; col < size; col++ {
+			if p[row][col] == p[row][col-1] {
+				count++
+			} else {
+				if count >= 5 {
+					penalty += 3 + count - 5
+				}
+				count = 1
+			}
+		}
+		if count >= 5 {
+			penalty += 3 + (count - 5)
+		}
+	}
+
+	// check adjacent modules in columns
+	for col := range size {
+		count := 1
+		for row := 1; row < size; row++ {
+			if p[row][col] == p[row-1][col] {
+				count++
+			} else {
+				if count >= 5 {
+					penalty += 3 + count - 5
+				}
+				count = 1
+			}
+		}
+		if count >= 5 {
+			penalty += 3 + (count - 5)
+		}
+	}
+
+	// check modules in 2x2 blocks
+	for row := 0; row < size-1; row++ {
+		for col := 0; col < size-1; col++ {
+			if p[row][col] == p[row][col+1] && p[row][col] == p[row+1][col] && p[row][col] == p[row+1][col+1] {
+				penalty += 3
+			}
+		}
+	}
+
+	// check finder like patterns
+	for row := 0; row < size; row++ {
+		for col := 0; col < size-6; col++ {
+			if p[row][col] && !p[row][col+1] && p[row][col+2] && p[row][col+3] && p[row][col+4] && !p[row][col+5] && p[row][col+6] {
+				penalty += 40
+			}
+		}
+	}
+	for col := 0; col < size; col++ {
+		for row := 0; row < size-6; row++ {
+			if p[row][col] && !p[row+1][col] && p[row+2][col] && p[row+3][col] && p[row+4][col] && !p[row+5][col] && p[row+6][col] {
+				penalty += 40
+			}
+		}
+	}
+
+	// check dark module ratio
+	darkCount := 0
+	for row := range size {
+		for col := range size {
+			if p[row][col] {
+				darkCount++
+			}
+		}
+	}
+	percentage := (darkCount * 100) / (size * size)
+	deviation := max(percentage-50, 50-percentage) / 5
+	penalty += deviation * 10
+
+	return penalty
+}
+
+func (p Pattern) findBestMask(reserved Pattern) Mask {
+	var mask Mask
+	minPenalty := 1 << 32
+
+	for m, _ := range maskPatterns {
+		clone := slices.Clone(p)
+		clone.applyMask(m, reserved)
+		penalty := clone.calcPenaltyScore()
+		if penalty < minPenalty {
+			minPenalty = penalty
+			mask = m
+		}
+		clone.applyMask(m, reserved)
+	}
+
+	return mask
 }
