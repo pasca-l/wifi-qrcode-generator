@@ -112,6 +112,12 @@ func TestPolynomialDivide(t *testing.T) {
 			quotient:  Polynomial{1, 6},
 			remainder: Polynomial{16, 12},
 		},
+		{
+			p:         Polynomial{64, 196, 134, 86, 198, 198, 242, 5, 118, 247, 38, 198, 66, 16, 236, 17, 236, 17, 236, 0, 0, 0, 0, 0, 0, 0},
+			q:         Polynomial{1, 127, 122, 154, 164, 11, 68, 117},
+			quotient:  Polynomial{64, 114, 221, 45, 154, 34, 24, 150, 189, 147, 236, 44, 35, 232, 4, 110, 182, 158, 120},
+			remainder: Polynomial{30, 201, 34, 105, 71, 33, 134},
+		},
 	}
 
 	for _, tt := range testcases {
