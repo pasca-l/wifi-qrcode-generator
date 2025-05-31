@@ -69,7 +69,7 @@ func (spec QRCodeSpec) EncodeSrc(src string) (utils.Bytes, error) {
 	if err != nil {
 		return utils.Bytes{}, err
 	}
-	srcCountBits, err := getSrcCountBits(len(srcBits), countIndicator)
+	srcCountBits, err := getSrcCountBits(len(srcBits)/8, countIndicator)
 	if err != nil {
 		return utils.Bytes{}, err
 	}
