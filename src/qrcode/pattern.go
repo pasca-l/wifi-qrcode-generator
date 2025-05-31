@@ -521,7 +521,7 @@ func (p Pattern) findBestMask(reserved Pattern) Mask {
 	var mask Mask
 	minPenalty := 1 << 32
 
-	for m, _ := range maskPatterns {
+	for m := range maskPatterns {
 		clone := slices.Clone(p)
 		clone.applyMask(m, reserved)
 		penalty := clone.calcPenaltyScore()
