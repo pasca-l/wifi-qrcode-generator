@@ -12,7 +12,7 @@ type Bytes []Byte
 type Bit bool
 type Bits []Bit
 
-func NewBytes(src interface{}) (Bytes, error) {
+func NewBytes(src any) (Bytes, error) {
 	var bs Bytes
 
 	switch v := src.(type) {

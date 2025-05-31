@@ -4,7 +4,7 @@ import "fmt"
 
 type Polynomial []byte
 
-func NewPolynomial(src interface{}) (Polynomial, error) {
+func NewPolynomial(src any) (Polynomial, error) {
 	var poly Polynomial
 
 	switch v := src.(type) {

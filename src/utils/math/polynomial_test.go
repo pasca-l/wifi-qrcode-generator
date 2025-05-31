@@ -8,7 +8,7 @@ import (
 
 func TestNewPolynomial(t *testing.T) {
 	testcases := []struct {
-		args    interface{}
+		args    any
 		want    Polynomial
 		wantErr error
 	}{

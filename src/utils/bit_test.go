@@ -8,7 +8,7 @@ import (
 
 func TestNewBytes(t *testing.T) {
 	testcases := []struct {
-		args    interface{}
+		args    any
 		want    Bytes
 		wantErr error
 	}{
