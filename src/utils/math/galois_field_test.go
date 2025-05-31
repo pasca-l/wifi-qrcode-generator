@@ -2,6 +2,8 @@ package math
 
 import "testing"
 
+// referenced: http://www.ee.unb.ca/cgi-bin/tervo/calc2.pl
+
 func TestGaloisFieldAdd(t *testing.T) {
 	testcases := []struct {
 		a, b int
@@ -55,6 +57,11 @@ func TestGaloisFieldFastMultiply(t *testing.T) {
 			a:    0b10001001,
 			b:    0b00101010,
 			want: 0b11000011,
+		},
+		{
+			a:    0b00000001,
+			b:    0b00101010,
+			want: 0b00101010,
 		},
 	}
 

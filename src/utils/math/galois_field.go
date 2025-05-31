@@ -80,12 +80,12 @@ var expLUT, logLUT = GF256.initLookUpTable()
 
 // lookup table for exponentials and logs
 func (gf GaloisField) initLookUpTable() ([]byte, []byte) {
-	expLUT := make([]byte, 0, 512)
+	expLUT := make([]byte, 256)
 	logLUT := make([]byte, 256)
 
 	x := byte(1)
-	for i := range 256 {
-		expLUT = append(expLUT, x)
+	for i := range 255 {
+		expLUT[i] = x
 		logLUT[x] = byte(i)
 		x = byte(gf.Multiply(int(x), 2))
 	}
