@@ -57,8 +57,8 @@ func (p Polynomial) Add(gf GaloisField, q Polynomial) Polynomial {
 
 func (p Polynomial) Multiply(gf GaloisField, q Polynomial) Polynomial {
 	r := make([]byte, len(p)+len(q)-1)
-	for j := range len(q) {
-		for i := range len(p) {
+	for i := range len(p) {
+		for j := range len(q) {
 			r[i+j] = byte(gf.Add(int(r[i+j]), int(gf.FastMultiply(p[i], q[j]))))
 		}
 	}
