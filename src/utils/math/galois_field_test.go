@@ -63,6 +63,11 @@ func TestGaloisFieldFastMultiply(t *testing.T) {
 			b:    0b00101010,
 			want: 0b00101010,
 		},
+		{
+			a:    0b01110010,
+			b:    0b01111010,
+			want: 0b00010111,
+		},
 	}
 
 	for _, tt := range testcases {

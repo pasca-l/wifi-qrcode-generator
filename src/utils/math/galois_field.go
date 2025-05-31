@@ -89,9 +89,6 @@ func (gf GaloisField) initLookUpTable() ([]byte, []byte) {
 		logLUT[x] = byte(i)
 		x = byte(gf.Multiply(int(x), 2))
 	}
-	// double the size of expLUT to omit mod 255
-	expLUT = append(expLUT, expLUT...)
-
 	return expLUT, logLUT
 }
 
@@ -100,7 +97,7 @@ func (gf GaloisField) FastMultiply(a, b byte) byte {
 		return 0
 	}
 
-	return expLUT[logLUT[a]+logLUT[b]]
+	return expLUT[(int(logLUT[a])+int(logLUT[b]))%255]
 }
 
 func (gf GaloisField) FastDivision(divident, divisor byte) (byte, error) {
