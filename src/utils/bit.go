@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"slices"
 )
 
 type Byte byte
@@ -111,7 +112,7 @@ func (bs Bits) ToBytes() (Bytes, error) {
 		for j := range 8 {
 			if bs[i+j] {
 				// set the bit to 1 if true
-				B |= (1 << uint(7-j))
+				B |= (1 << (7 - j))
 			}
 		}
 		Bs = append(Bs, B)
@@ -125,7 +126,7 @@ func (bs Bits) ToBitString() string {
 	padding := make(Bits, paddingLength)
 
 	// add padding from the left
-	bits := append(padding, bs...)
+	bits := slices.Concat(padding, bs)
 
 	var bitString string
 	for i, b := range bits {

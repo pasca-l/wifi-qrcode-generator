@@ -436,6 +436,7 @@ func (p Pattern) applyMask(mask Mask, reserved Pattern) {
 	}
 }
 
+//nolint:cyclop,gocognit
 func (p Pattern) calcPenaltyScore() int {
 	size := len(p)
 	penalty := 0

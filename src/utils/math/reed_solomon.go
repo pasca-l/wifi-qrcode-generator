@@ -1,6 +1,10 @@
 package math
 
-import "github.com/pasca-l/wifi-qrcode-generator/utils"
+import (
+	"slices"
+
+	"github.com/pasca-l/wifi-qrcode-generator/utils"
+)
 
 type ReedSolomon struct{}
 
@@ -8,7 +12,7 @@ func (rs ReedSolomon) Encode(msg utils.Bytes, nsym int) (utils.Bytes, error) {
 	gen := GeneratorPoly(GF256, nsym)
 
 	// add padding before dividing with irreducible generator polynomial
-	padMsg := append(msg, make(utils.Bytes, len(gen)-1)...)
+	padMsg := slices.Concat(msg, make(utils.Bytes, len(gen)-1))
 	padMsgPoly, err := NewPolynomial(padMsg.ToNativeBytes())
 	if err != nil {
 		return utils.Bytes{}, err
@@ -21,6 +25,6 @@ func (rs ReedSolomon) Encode(msg utils.Bytes, nsym int) (utils.Bytes, error) {
 	}
 
 	// append remainder to the message as codeword
-	rsMsg := append(msg, rBytes...)
+	rsMsg := slices.Concat(msg, rBytes)
 	return rsMsg, nil
 }

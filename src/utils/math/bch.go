@@ -2,6 +2,7 @@ package math
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/pasca-l/wifi-qrcode-generator/utils"
 )
@@ -18,8 +19,8 @@ func (bch BCH) EncodeFormatInfo(ecl utils.Bits, mask utils.Bits) (utils.Bits, er
 	}
 
 	// convert to native byte
-	formatInfo := append(ecl, mask...)
-	formatInfoBytes, err := append(utils.Bits{false, false, false}, formatInfo...).ToBytes()
+	formatInfo := slices.Concat(ecl, mask)
+	formatInfoBytes, err := slices.Concat(utils.Bits{false, false, false}, formatInfo).ToBytes()
 	if err != nil {
 		return nil, err
 	}
