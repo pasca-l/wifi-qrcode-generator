@@ -44,7 +44,7 @@ func TestGeneratorPoly(t *testing.T) {
 	}{
 		{
 			nsym: 10,
-			want: Polynomial{1, 216, 194, 158, 111, 193, 194, 111, 213, 157, 193},
+			want: Polynomial{1, 216, 194, 159, 111, 199, 94, 95, 113, 157, 193},
 		},
 	}
 
